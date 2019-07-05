@@ -26,6 +26,7 @@
 
 <script>
 import axios from "axios";
+import ActionCable from 'actioncable';
 
 export default {
   data: function() {
@@ -38,6 +39,20 @@ export default {
     axios.get("/api/messages").then(response => {
       this.messages = response.data;
     });
+
+    var cable = ActionCable.createConsumer("ws://localhost:3000/cable");
+    cable.subscriptions.create("MessagesChannel", {
+      connected: () => {
+        console.log("Conected to API");
+      },
+      disconnected: () => {
+        console.log("Disconnected from API");
+      },
+      received: data => {
+        console.log("API is talking", data);
+        this.messages.unshift(data);
+      }
+    })
   },
   methods: {
     createMessage: function() {
